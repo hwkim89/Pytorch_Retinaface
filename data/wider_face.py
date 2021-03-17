@@ -7,10 +7,11 @@ import cv2
 import numpy as np
 
 class WiderFaceDetection(data.Dataset):
-    def __init__(self, txt_path, preproc=None):
+    def __init__(self, txt_path, preproc=None, path_dict=None):
         self.preproc = preproc
         self.imgs_path = []
         self.words = []
+
         f = open(txt_path,'r')
         lines = f.readlines()
         isFirst = True
@@ -18,15 +19,32 @@ class WiderFaceDetection(data.Dataset):
         for line in lines:
             line = line.rstrip()
             if line.startswith('#'):
+                # Make a path
+                path = line[2:]
+                if not path_dict: # using original images
+                    path = txt_path.replace('label.txt','images/') + path
+                else: # using masked images
+                    path = txt_path.replace('label.txt','masked_images/') + path
+
+                if path_dict:
+                    # Check an image is included in masked image or not
+                    # if using masked images
+                    if path not in path_dict:
+                        continue
+
+                    # Convert the path to a masked image path
+                    path = path_dict[path]
+
+                # Add the image path
+                self.imgs_path.append(path)
+
+                # Make labels
                 if isFirst is True:
                     isFirst = False
                 else:
                     labels_copy = labels.copy()
                     self.words.append(labels_copy)
                     labels.clear()
-                path = line[2:]
-                path = txt_path.replace('label.txt','images/') + path
-                self.imgs_path.append(path)
             else:
                 line = line.split(' ')
                 label = [float(x) for x in line]

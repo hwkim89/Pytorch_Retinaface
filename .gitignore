@@ -1,0 +1,5 @@
+data/widerface/
+weights/
+results/
+
+*.pyc
