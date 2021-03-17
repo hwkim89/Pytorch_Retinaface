@@ -1,5 +1,7 @@
 from __future__ import print_function
 import os
+import glob
+import matplotlib.pyplot as plt
 import torch
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
@@ -14,6 +16,7 @@ import math
 from models.retinaface import RetinaFace
 
 parser = argparse.ArgumentParser(description='Retinaface Training')
+parser.add_argument('--train_dir', default='./data/widerface/train/images', help='Training dataset directory')
 parser.add_argument('--training_dataset', default='./data/widerface/train/label.txt', help='Training dataset directory')
 parser.add_argument('--network', default='mobile0.25', help='Backbone network mobile0.25 or resnet50')
 parser.add_argument('--num_workers', default=4, type=int, help='Number of workers used in dataloading')
@@ -40,8 +43,10 @@ num_classes = 2
 img_dim = cfg['image_size']
 num_gpu = cfg['ngpu']
 batch_size = cfg['batch_size']
-max_epoch = cfg['epoch']
+max_epoch = 2 #cfg['epoch']
 gpu_train = cfg['gpu_train']
+if args.resume_net:
+    cfg['pretrain'] = False
 
 num_workers = args.num_workers
 momentum = args.momentum
@@ -86,12 +91,28 @@ with torch.no_grad():
     priors = priorbox.forward()
     priors = priors.cuda()
 
+def get_path_dict(train_dir):
+    '''Get path dictionary for image paths with/without mask type.
+       - key: image path without mask type
+       - value: image path with mask type 
+    '''
+    MASK_TYPES = ('cloth', 'surgical_blue', 'surgical', 'KN95')
+    path_dict = {}
+    for img_path in glob.glob(f'{train_dir}/**/*.jpg'):
+        for mtype in MASK_TYPES:
+            if mtype in img_path:
+                img_path_wo_mtype = img_path.replace(f'_{mtype}', '')
+                path_dict[img_path_wo_mtype] = img_path
+
+    return path_dict
+
 def train():
     net.train()
     epoch = 0 + args.resume_epoch
     print('Loading Dataset...')
 
-    dataset = WiderFaceDetection( training_dataset,preproc(img_dim, rgb_mean))
+    path_dict = get_path_dict(args.train_dir)
+    dataset = WiderFaceDetection(training_dataset, preproc(img_dim, rgb_mean), path_dict)
 
     epoch_size = math.ceil(len(dataset) / batch_size)
     max_iter = max_epoch * epoch_size
@@ -104,6 +125,14 @@ def train():
     else:
         start_iter = 0
 
+    # Make a file to save losses
+    if not os.path.isdir('./results'):
+        os.mkdir('./results')
+    
+    with open('./results/loss.txt', 'w') as f:
+        pass
+
+    losses = []
     for iteration in range(start_iter, max_iter):
         if iteration % epoch_size == 0:
             # create batch iterator
@@ -137,6 +166,21 @@ def train():
         print('Epoch:{}/{} || Epochiter: {}/{} || Iter: {}/{} || Loc: {:.4f} Cla: {:.4f} Landm: {:.4f} || LR: {:.8f} || Batchtime: {:.4f} s || ETA: {}'
               .format(epoch, max_epoch, (iteration % epoch_size) + 1,
               epoch_size, iteration + 1, max_iter, loss_l.item(), loss_c.item(), loss_landm.item(), lr, batch_time, str(datetime.timedelta(seconds=eta))))
+
+        ITER_SAVE_UNIT = 50
+        if iteration % ITER_SAVE_UNIT == 0:
+            # Save a loss
+            with open('./results/loss.txt', 'a') as f:
+                f.write(f'{loss.item():.4f}\n')
+
+            # Plot a graph
+            losses.append(loss.item())
+            iters = [iter*ITER_SAVE_UNIT for iter in range(len(losses))]
+            plt.plot(iters, losses)
+            plt.xlabel('Iteration') 
+            plt.ylabel('Loss') 
+            plt.title('Training Losses') 
+            plt.savefig('./results/loss.png')
 
     torch.save(net.state_dict(), save_folder + cfg['name'] + '_Final.pth')
     # torch.save(net.state_dict(), save_folder + 'Final_Retinaface.pth')
