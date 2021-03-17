@@ -223,6 +223,14 @@ def voc_ap(rec, prec):
     ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])
     return ap
 
+def get_pred_img_name(img_name, pred_img_names):
+    MASK_TYPES = ('cloth', 'surgical', 'surgical_blue', 'KN95')
+    for pred_img_name in pred_img_names:
+        for m_type in MASK_TYPES:
+            possible_pred_img_name = f'{img_name}_{m_type}'
+            if possible_pred_img_name == pred_img_name:
+                return possible_pred_img_name
+    return None
 
 def evaluation(pred, gt_path, iou_thresh=0.5):
     pred = get_preds(pred)
@@ -249,9 +257,17 @@ def evaluation(pred, gt_path, iou_thresh=0.5):
             # img_pr_info_list = np.zeros((len(img_list), thresh_num, 2))
             gt_bbx_list = facebox_list[i][0]
 
+            pred_img_names = list(pred_list.keys())
             for j in range(len(img_list)):
-                pred_info = pred_list[str(img_list[j][0][0])]
+                img_name = str(img_list[j][0][0])
+                if not args.masked: # For original images
+                    pred_img_name = img_name
+                else: # For masked images
+                    pred_img_name = get_pred_img_name(img_name, pred_img_names)
+                    if not pred_img_name:
+                        continue
 
+                pred_info = pred_list[pred_img_name]
                 gt_boxes = gt_bbx_list[j][0].astype('float')
                 keep_index = sub_gt_list[j][0]
                 count_face += len(keep_index)
@@ -286,6 +302,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--pred', default="./widerface_txt/")
     parser.add_argument('-g', '--gt', default='./ground_truth/')
+    parser.add_argument('--masked', action='store_true', help='Whether use masked images or not')
 
     args = parser.parse_args()
     evaluation(args.pred, args.gt)

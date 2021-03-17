@@ -43,7 +43,7 @@ num_classes = 2
 img_dim = cfg['image_size']
 num_gpu = cfg['ngpu']
 batch_size = cfg['batch_size']
-max_epoch = 2 #cfg['epoch']
+max_epoch = cfg['epoch']
 gpu_train = cfg['gpu_train']
 if args.resume_net:
     cfg['pretrain'] = False
@@ -137,7 +137,7 @@ def train():
         if iteration % epoch_size == 0:
             # create batch iterator
             batch_iterator = iter(data.DataLoader(dataset, batch_size, shuffle=True, num_workers=num_workers, collate_fn=detection_collate))
-            if (epoch % 10 == 0 and epoch > 0) or (epoch % 5 == 0 and epoch > cfg['decay1']):
+            if (epoch % 5 == 0 and epoch > 0): # or (epoch % 5 == 0 and epoch > cfg['decay1']):
                 torch.save(net.state_dict(), save_folder + cfg['name']+ '_epoch_' + str(epoch) + '.pth')
             epoch += 1
 

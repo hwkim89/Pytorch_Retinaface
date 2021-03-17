@@ -1,5 +1,7 @@
 from __future__ import print_function
 import os
+import glob
+import shutil
 import argparse
 import torch
 import torch.backends.cudnn as cudnn
@@ -72,6 +74,7 @@ if __name__ == '__main__':
     cfg = None
     if args.network == "mobile0.25":
         cfg = cfg_mnet
+        cfg['pretrain'] = False
     elif args.network == "resnet50":
         cfg = cfg_re50
     # net and model
@@ -86,10 +89,23 @@ if __name__ == '__main__':
 
     # testing dataset
     testset_folder = args.dataset_folder
-    testset_list = args.dataset_folder[:-7] + "wider_val.txt"
+    if 'masked' not in testset_folder:
+        testset_list = args.dataset_folder[:-7] + "wider_val.txt"
+    else:
+        # Make a file including testset list
+        img_paths = glob.glob(f'{testset_folder}/**/*.jpg')
+        img_names = ['# ' + img_path.split('/')[-2] + '/'+ img_path.split('/')[-1]
+                     for img_path in img_paths]
 
+        testset_list = args.dataset_folder[:-14] + "masked_wider_val.txt"
+        with open(testset_list, 'w') as f:
+            f.write('\n'.join(img_names))
+
+    test_dataset = []
     with open(testset_list, 'r') as fr:
-        test_dataset = fr.read().split()
+        for img_name in fr.read().splitlines():
+            if '#' == img_name[0]:
+                test_dataset.append(img_name[2:])
     num_images = len(test_dataset)
 
     _t = {'forward_pass': Timer(), 'misc': Timer()}
