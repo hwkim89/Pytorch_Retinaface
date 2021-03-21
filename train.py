@@ -167,6 +167,11 @@ def train():
               .format(epoch, max_epoch, (iteration % epoch_size) + 1,
               epoch_size, iteration + 1, max_iter, loss_l.item(), loss_c.item(), loss_landm.item(), lr, batch_time, str(datetime.timedelta(seconds=eta))))
 
+        del images, targets
+        import gc
+        gc.collect()
+        torch.cuda.empty_cache()
+
         ITER_SAVE_UNIT = 50
         if iteration % ITER_SAVE_UNIT == 0:
             # Save a loss
@@ -174,13 +179,14 @@ def train():
                 f.write(f'{loss.item():.4f}\n')
 
             # Plot a graph
-            losses.append(loss.item())
-            iters = [iter*ITER_SAVE_UNIT for iter in range(len(losses))]
-            plt.plot(iters, losses)
-            plt.xlabel('Iteration') 
-            plt.ylabel('Loss') 
-            plt.title('Training Losses') 
-            plt.savefig('./results/loss.png')
+            if iteration % (ITER_SAVE_UNIT*10) == 0:
+                losses.append(loss.item())
+                iters = [iter*ITER_SAVE_UNIT for iter in range(len(losses))]
+                plt.plot(iters, losses)
+                plt.xlabel('Iteration') 
+                plt.ylabel('Loss') 
+                plt.title('Training Losses') 
+                plt.savefig('./results/loss.png')
 
     torch.save(net.state_dict(), save_folder + cfg['name'] + '_Final.pth')
     # torch.save(net.state_dict(), save_folder + 'Final_Retinaface.pth')

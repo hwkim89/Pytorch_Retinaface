@@ -1,7 +1,7 @@
 data/widerface/
 weights/
 results/
-widerface_evaluate/widerface_txt/
+widerface_evaluate/widerface_txt*/
 widerface_evaluate/build/
 
 *.pyc
