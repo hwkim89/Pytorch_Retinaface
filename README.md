@@ -16,27 +16,17 @@ Finetuned Models were evaluated in different epochs and confidence scores by the
 |:-|:-:|:-:|:-:|
 | Original Model (Mxnet) | 88.67% | 87.09% | 80.99% |
 | Original Model (conf 0.02) | 90.70% | 88.16% | 73.82% |
-| Finetuned Model (epoch 5, conf 0.02) | 89.65% | 87.27% | 69.78% |
-| Finetuned Model (epoch 125, conf 0.02) | - | - | - |
-| Finetuned Model (epoch 250, conf 0.02) | 89.53% | 87.07% | 70.24% |
+| Finetuned Model (conf 0.02) | 89.53% | 87.07% | 70.24% |
 | Original Model (conf 0.6) | 88.26% | 83.95% | 58.15% |
-| Finetuned Model (epoch 5, conf 0.6) | 86.42% | 81.89% | 51.02% |
-| Finetuned Model (epoch 125, conf 0.6) | 86.32% | 82.39% | 52.76% |
-| Finetuned Model (epoch 250, conf 0.6) | 87.05% | 82.83% | 54.25% |
-| Finetuned Model (epoch 500, conf 0.6) | 87.48% | 83.26% | 55.22% |
+| Finetuned Model (conf 0.6) | 87.48% | 83.26% | 55.22% |
 
 ### Masked Image
 | Style | easy | medium | hard |
 |:-|:-:|:-:|:-:|
 | Original Model (conf 0.02) | 91.41% | 89.72% | 80.30% |
-| Finetuned Model (epoch 5, conf 0.02) | 92.22% | 90.32% | 78.30% |
-| Finetuned Model (epoch 125, conf 0.02) | - | - | - |
-| Finetuned Model (epoch 250, conf 0.02) | - | - | - |
+| Finetuned Model (conf 0.02) | 92.22% | 90.32% | 78.30% |
 | Original Model (conf 0.6) | 88.03% | 84.43% | 67.58% |
-| Finetuned Model (epoch 5, conf 0.6) | 89.11% | 85.28% | 64.61% |
-| Finetuned Model (epoch 125, conf 0.6) | 89.64% | 86.21% | 66.61% |
-| Finetuned Model (epoch 250, conf 0.6) | 90.06% | 86.48% | 67.72% |
-| Finetuned Model (epoch 500, conf 0.6) | 90.53% | 86.95% | 68.39% |
+| Finetuned Model (conf 0.6) | 90.53% | 86.95% | 68.39% |
 
 
 ## Finetuning
